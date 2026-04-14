@@ -25,7 +25,7 @@ public class InitDB {
             stmt.executeUpdate("DROP TABLE IF EXISTS brand;");
             System.out.println("Old tables dropped.");
 
-            String sql = new String(Files.readAllBytes(Paths.get("D:\\ElectronicsInventorySystem\\sql\\schema.sql")));
+            String sql = new String(Files.readAllBytes(Paths.get("database.sql")));
             String[] statements = sql.split(";");
 
             for (String s : statements) {

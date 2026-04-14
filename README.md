@@ -2,7 +2,6 @@
 
 A complete desktop inventory management application built with **Java Swing**, **JDBC**, and **MySQL** for an electronics and mobile shop.
 
-> **Academic DBMS Mini Project** — designed for structured presentation, viva, and demo.
 
 ---
 
@@ -47,8 +46,7 @@ A complete desktop inventory management application built with **Java Swing**, *
 
 ```
 ElectronicsInventorySystem/
-├── sql/
-│   └── schema.sql                  # Database creation + sample data
+├── database.sql                  # Database creation + sample data
 ├── lib/
 │   └── mysql-connector-j-8.x.jar  # (You must place the JAR here)
 ├── src/
@@ -108,7 +106,7 @@ ElectronicsInventorySystem/
 ### Step 1: Create the Database
 
 ```bash
-mysql -u root -p < sql/schema.sql
+mysql -u root -p < database.sql
 ```
 
 This creates the `electronics_inventory` database, all 8 tables, and inserts sample data.
@@ -195,4 +193,4 @@ BRAND (1) ──── (M) PRODUCT (1) ──── (1) STOCK
 
 ## License
 
-Academic project — free to use for educational purposes.
+This project is open-source and free to use.
