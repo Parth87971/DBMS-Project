@@ -1,0 +1,408 @@
+/* ============================================================
+   DASHBOARD ANALYTICS STYLES
+   ============================================================ */
+
+.analytics-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.card-header-icon {
+  vertical-align: -3px;
+  margin-right: 4px;
+  opacity: 0.6;
+}
+
+/* ── Chart Legend ── */
+.chart-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+/* ── Horizontal Bar Chart ── */
+.bar-chart-horizontal {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bar-rank {
+  width: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.bar-label {
+  width: 130px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+.bar-track {
+  flex: 1;
+  height: 22px;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: var(--radius-sm);
+  min-width: 4px;
+  transition: width 0.3s ease;
+}
+
+.bar-value {
+  width: 120px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  color: var(--color-text);
+  flex-shrink: 0;
+}
+
+/* ── Vertical Grouped Bar Chart ── */
+.vertical-bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 160px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-md);
+}
+
+.vbar-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.vbar-bars {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  width: 100%;
+  justify-content: center;
+}
+
+.vbar {
+  width: 18px;
+  border-radius: 3px 3px 0 0;
+  min-height: 4px;
+  transition: height 0.3s ease;
+  cursor: default;
+}
+
+.vbar:hover {
+  opacity: 0.85;
+}
+
+.vbar-label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  margin-top: 6px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.trend-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 0;
+}
+
+.trend-month {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+/* ── Category / Brand Breakdown (donut-style rows) ── */
+.donut-chart-area {
+  display: flex;
+  flex-direction: column;
+}
+
+.donut-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.donut-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.donut-row-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 110px;
+  flex-shrink: 0;
+}
+
+.donut-color {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.donut-cat {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.donut-row-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.donut-bar-track {
+  flex: 1;
+  height: 20px;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.donut-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-sm);
+  min-width: 4px;
+  transition: width 0.3s ease;
+}
+
+.donut-pct {
+  width: 44px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.donut-qty {
+  min-width: 36px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* ── Stock Level Chart ── */
+.stock-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stock-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stock-row.low .stock-label {
+  color: var(--color-danger);
+}
+
+.stock-label {
+  width: 130px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+}
+
+.stock-bar-track {
+  flex: 1;
+  height: 18px;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  position: relative;
+  overflow: visible;
+}
+
+.stock-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-sm);
+  min-width: 3px;
+  transition: width 0.3s ease;
+}
+
+.stock-reorder-line {
+  position: absolute;
+  top: -2px;
+  bottom: -2px;
+  width: 2px;
+  background: transparent;
+  border-left: 2px dashed var(--color-text-muted);
+  opacity: 0.5;
+}
+
+.stock-qty {
+  width: 60px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  flex-shrink: 0;
+}
+
+.stock-legend {
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--color-border);
+  text-align: right;
+}
+
+/* ── Financial Summary ── */
+.financial-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.financial-item {
+  text-align: center;
+  padding: var(--space-md);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+}
+
+.financial-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: var(--space-xs);
+}
+
+.financial-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.financial-value.text-success {
+  color: var(--color-success);
+}
+
+.financial-value.text-danger {
+  color: var(--color-danger);
+}
+
+.margin-bar-area {
+  padding-top: var(--space-sm);
+}
+
+.margin-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 6px;
+}
+
+.margin-bar-track {
+  display: flex;
+  height: 28px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  gap: 2px;
+}
+
+.margin-bar-cost {
+  background: #475569;
+  height: 100%;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.margin-bar-revenue {
+  background: #0f766e;
+  height: 100%;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1200px) {
+  .analytics-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .financial-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .bar-label,
+  .stock-label,
+  .donut-row-left {
+    width: 90px;
+  }
+  .bar-value {
+    width: 80px;
+  }
+  .financial-grid {
+    grid-template-columns: 1fr;
+  }
+}

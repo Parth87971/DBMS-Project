@@ -1,8 +1,4 @@
--- ============================================================
--- ELECTRONICS INVENTORY MANAGEMENT SYSTEM
--- Database Schema Script
--- MySQL 8.0+
--- ============================================================
+
 
 CREATE DATABASE IF NOT EXISTS electronics_inventory;
 USE electronics_inventory;
