@@ -35,7 +35,7 @@ A complete desktop inventory management application built with **Java Swing**, *
 | Layer       | Technology                          |
 |-------------|-------------------------------------|
 | Language    | Java 8+                             |
-| GUI         | Java Swing                          |
+| GUI         | React native                          |
 | Database    | MySQL 8.0+                          |
 | Connectivity| JDBC with `PreparedStatement` only  |
 | Driver      | MySQL Connector/J 8.x               |
