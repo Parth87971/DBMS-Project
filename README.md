@@ -1,7 +1,6 @@
 # Electronics Inventory Management System
 
-A complete desktop inventory management application built with **Java Swing**, **JDBC**, and **MySQL** for an electronics and mobile shop.
-
+A full-stack inventory management application built with a **React + Vite** frontend, a **Java HTTP REST API** backend, **JDBC**, and **MySQL** for an electronics and mobile shop.
 
 ---
 
@@ -34,8 +33,9 @@ A complete desktop inventory management application built with **Java Swing**, *
 
 | Layer       | Technology                          |
 |-------------|-------------------------------------|
-| Language    | Java 8+                             |
-| GUI         | React native                          |
+| Language    | Java 8+ (Backend)                   |
+| Frontend    | React 19 + Vite + Lucide Icons      |
+| Backend API | Java HTTP REST Server (Gson)        |
 | Database    | MySQL 8.0+                          |
 | Connectivity| JDBC with `PreparedStatement` only  |
 | Driver      | MySQL Connector/J 8.x               |
@@ -46,50 +46,23 @@ A complete desktop inventory management application built with **Java Swing**, *
 
 ```
 ElectronicsInventorySystem/
-├── database.sql                  # Database creation + sample data
+├── database.sql                  # Database creation + seed data
 ├── lib/
-│   └── mysql-connector-j-8.x.jar  # (You must place the JAR here)
+│   ├── gson-2.10.1.jar           # JSON serialization
+│   └── mysql-connector-j-8.3.0.jar
 ├── src/
 │   └── inventory/
-│       ├── Main.java               # Application entry point
+│       ├── Main.java             # Backend entry point (starts REST server)
+│       ├── api/
+│       │   └── RestServer.java   # HTTP REST endpoints on port 8081
 │       ├── config/
-│       │   └── DBConnection.java   # JDBC connection utility
-│       ├── model/                  # POJO classes (8 files)
-│       │   ├── Brand.java
-│       │   ├── Product.java
-│       │   ├── Supplier.java
-│       │   ├── Customer.java
-│       │   ├── Purchase.java
-│       │   ├── Sale.java
-│       │   ├── Stock.java
-│       │   └── Warranty.java
-│       ├── dao/                    # Data Access Objects (8 files)
-│       │   ├── BrandDAO.java
-│       │   ├── ProductDAO.java
-│       │   ├── SupplierDAO.java
-│       │   ├── CustomerDAO.java
-│       │   ├── PurchaseDAO.java
-│       │   ├── SaleDAO.java
-│       │   ├── StockDAO.java
-│       │   └── WarrantyDAO.java
-│       ├── service/                # Transaction/business logic
-│       │   ├── PurchaseService.java
-│       │   └── SaleService.java
-│       ├── util/                   # Utilities
-│       │   ├── ValidationUtil.java
-│       │   └── ComboItem.java
-│       └── ui/                     # Swing GUI panels (10 files)
-│           ├── MainFrame.java
-│           ├── DashboardPanel.java
-│           ├── BrandPanel.java
-│           ├── ProductPanel.java
-│           ├── SupplierPanel.java
-│           ├── CustomerPanel.java
-│           ├── PurchasePanel.java
-│           ├── SalePanel.java
-│           ├── StockPanel.java
-│           └── WarrantyPanel.java
-├── build_and_run.bat               # Windows build + run script
+│       │   └── DBConnection.java # JDBC connection utility
+│       ├── model/                # POJO classes
+│       ├── dao/                  # Data Access Objects
+│       ├── service/              # Transaction/business logic
+│       └── util/                 # Utilities
+├── frontend/                     # React + Vite application (port 5173)
+├── build_and_run.bat             # Backend build & run script
 └── README.md
 ```
 
@@ -100,8 +73,8 @@ ElectronicsInventorySystem/
 ### Prerequisites
 
 1. **JDK 8** or later installed and `javac`/`java` in PATH.
-2. **MySQL 8.0+** installed and running.
-3. **MySQL Connector/J** JAR file (download from [MySQL Downloads](https://dev.mysql.com/downloads/connector/j/)).
+2. **Node.js** (v18+) and npm.
+3. **MySQL 8.0+** installed and running.
 
 ### Step 1: Create the Database
 
@@ -109,42 +82,22 @@ ElectronicsInventorySystem/
 mysql -u root -p < database.sql
 ```
 
-This creates the `electronics_inventory` database, all 8 tables, and inserts sample data.
+### Step 2: Start the Java Backend
 
-### Step 2: Configure Database Credentials
-
-Open `src/inventory/config/DBConnection.java` and update:
-
-```java
-private static final String USER = "root";
-private static final String PASS = "";   // ← Your MySQL password
-```
-
-### Step 3: Add MySQL Connector JAR
-
-Create a `lib/` folder in the project root and place the MySQL Connector/J JAR there:
-
-```
-ElectronicsInventorySystem/
-└── lib/
-    └── mysql-connector-j-8.3.0.jar   (or your version)
-```
-
-### Step 4: Build and Run
-
-**Option A — Batch Script (Windows)**:
-```
+```bash
+# Build and run the backend REST API
 build_and_run.bat
 ```
+The REST API server will run on `http://localhost:8081`.
 
-**Option B — Manual**:
+### Step 3: Start the Frontend
+
 ```bash
-# Compile
-javac -cp "lib/*" -d out src/inventory/**/*.java src/inventory/Main.java
-
-# Run
-java -cp "out;lib/*" inventory.Main
+cd frontend
+npm install
+npm run dev
 ```
+Open `http://localhost:5173` in your browser.
 
 ---
 
