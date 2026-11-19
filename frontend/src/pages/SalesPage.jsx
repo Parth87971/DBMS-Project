@@ -2,9 +2,11 @@ import { useState } from 'react';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { sales as initialSales, products, customers, getProductName, getCustomerName, formatCurrency, formatDate } from '../data/mockData';
+import { sales as initialSales, products, customers, stock, warranties, getProductName, getCustomerName, formatCurrency, formatDate } from '../data/mockData';
 
 const emptyForm = { sale_date: new Date().toISOString().split('T')[0], product_id: '', customer_id: '', quantity: '', selling_price: '', add_warranty: true };
+
+import { saveToBackend, deleteFromBackend } from '../data/mockData';
 
 export default function SalesPage() {
   const [data, setData] = useState(initialSales);
@@ -26,18 +28,33 @@ export default function SalesPage() {
     setModalOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.sale_date || !form.product_id || !form.customer_id || !form.quantity || !form.selling_price) return;
-    if (editing) {
-      setData(d => d.map(r => r.sale_id === editing.sale_id ? { ...r, ...form, product_id: Number(form.product_id), customer_id: Number(form.customer_id), quantity: Number(form.quantity), selling_price: Number(form.selling_price) } : r));
-    } else {
-      setData(d => [...d, { sale_id: Math.max(...d.map(x => x.sale_id), 0) + 1, ...form, product_id: Number(form.product_id), customer_id: Number(form.customer_id), quantity: Number(form.quantity), selling_price: Number(form.selling_price) }]);
-      // Backend handles stock reduction and warranty creation.
+    try {
+      if (editing) {
+        const updated = { ...editing, ...form, product_id: Number(form.product_id), customer_id: Number(form.customer_id), quantity: Number(form.quantity), selling_price: Number(form.selling_price) };
+        await saveToBackend('sales', updated);
+      } else {
+        const newSale = { sale_id: 0, ...form, product_id: Number(form.product_id), customer_id: Number(form.customer_id), quantity: Number(form.quantity), selling_price: Number(form.selling_price) };
+        await saveToBackend('sales', newSale);
+      }
+      setData([...initialSales]);
+      setModalOpen(false);
+    } catch (e) {
+      alert(e.message);
     }
-    setModalOpen(false);
   };
 
-  const handleDelete = (row) => { if (confirm(`Delete this sale record? Note: This will not undo stock changes.`)) setData(d => d.filter(r => r.sale_id !== row.sale_id)); };
+  const handleDelete = async (row) => {
+    if (confirm(`Delete this sale record? Note: This will not undo stock changes.`)) {
+      try {
+        await deleteFromBackend('sales', row.sale_id);
+        setData([...initialSales]);
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+  };
 
   const columns = [
     { key: 'sale_id', label: 'ID', width: '60px' },

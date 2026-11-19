@@ -60,7 +60,6 @@ public class ProductDAO {
         return null;
     }
 
-    /** Returns all products with brand name (joined). */
     public List<Object[]> getAllWithBrand() throws SQLException {
         List<Object[]> list = new ArrayList<>();
         String sql = "SELECT p.product_id, p.product_name, p.model_number, p.category, "

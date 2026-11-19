@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { products, brands, getBrandName, formatCurrency } from '../data/mockData';
 
 const emptyForm = { product_name: '', model_number: '', category: '', price: '', brand_id: '' };
+import { saveToBackend, updateToBackend, deleteFromBackend } from '../data/mockData';
 
 export default function ProductsPage() {
   const [data, setData] = useState(products);
@@ -18,17 +19,34 @@ export default function ProductsPage() {
     setForm({ product_name: row.product_name, model_number: row.model_number, category: row.category, price: String(row.price), brand_id: String(row.brand_id) });
     setModalOpen(true);
   };
-  const handleSave = () => {
+
+  const handleSave = async () => {
     if (!form.product_name || !form.price || !form.brand_id) return;
-    if (editing) {
-      setData(d => d.map(r => r.product_id === editing.product_id ? { ...r, ...form, price: Number(form.price), brand_id: Number(form.brand_id) } : r));
-    } else {
-      const newId = Math.max(...data.map(d => d.product_id), 0) + 1;
-      setData(d => [...d, { product_id: newId, ...form, price: Number(form.price), brand_id: Number(form.brand_id) }]);
+    try {
+      if (editing) {
+        const updated = { ...editing, ...form, price: Number(form.price), brand_id: Number(form.brand_id) };
+        await updateToBackend('products', updated);
+      } else {
+        const newProduct = { product_id: 0, ...form, price: Number(form.price), brand_id: Number(form.brand_id) };
+        await saveToBackend('products', newProduct);
+      }
+      setData([...products]);
+      setModalOpen(false);
+    } catch (e) {
+      alert(e.message);
     }
-    setModalOpen(false);
   };
-  const handleDelete = (row) => { if (confirm(`Delete "${row.product_name}"?`)) setData(d => d.filter(r => r.product_id !== row.product_id)); };
+
+  const handleDelete = async (row) => {
+    if (confirm(`Delete product "${row.product_name}"?`)) {
+      try {
+        await deleteFromBackend('products', row.product_id);
+        setData([...products]);
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+  };
 
   const categories = [...new Set(products.map(p => p.category))];
   const columns = [

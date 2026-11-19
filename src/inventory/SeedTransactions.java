@@ -1,100 +1,135 @@
 package inventory;
 
+import inventory.config.DBConnection;
 import inventory.model.Purchase;
 import inventory.model.Sale;
 import inventory.service.PurchaseService;
 import inventory.service.SaleService;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.Connection;
 import java.sql.Date;
+import java.sql.Statement;
 import java.time.LocalDate;
+import java.util.Random;
 
 public class SeedTransactions {
     public static void main(String[] args) {
-        System.out.println("Seeding transaction data...");
+        System.out.println("Initializing realistic database...");
         try {
+            // 1. Run database.sql to reset schema
+            executeSqlFile("database.sql");
+            System.out.println("Database schema reset successfully.");
+
             PurchaseService purchaseService = new PurchaseService();
             SaleService saleService = new SaleService();
+            Random rand = new Random(42); // fixed seed for reproducibility
+
+            // We have 16 products in database.sql
+            // product_ids: 1 to 16
+            // supplier_ids: 1 to 5
+            // customer_ids: 1 to 8
+
+            // 2. Initial Huge Purchases 1 year ago for all products
+            LocalDate startYear = LocalDate.now().minusDays(365);
+            System.out.println("Seeding initial stock purchases...");
+            for (int prodId = 1; prodId <= 16; prodId++) {
+                Purchase p = new Purchase();
+                p.setPurchaseDate(Date.valueOf(startYear.plusDays(rand.nextInt(10))));
+                p.setProductId(prodId);
+                p.setSupplierId(rand.nextInt(5) + 1);
+                p.setQuantity(rand.nextInt(50) + 50); // 50 to 100
+                // Generate a realistic cost price based on product ID (just an estimate)
+                double estimatedCost = getEstimatedCost(prodId);
+                p.setCostPrice(estimatedCost);
+                purchaseService.addPurchase(p);
+            }
+
+            // 3. Seed periodic purchases throughout the year
+            for (int i = 0; i < 40; i++) {
+                Purchase p = new Purchase();
+                LocalDate pDate = startYear.plusDays(rand.nextInt(350) + 15);
+                p.setPurchaseDate(Date.valueOf(pDate));
+                int prodId = rand.nextInt(16) + 1;
+                p.setProductId(prodId);
+                p.setSupplierId(rand.nextInt(5) + 1);
+                p.setQuantity(rand.nextInt(30) + 10);
+                p.setCostPrice(getEstimatedCost(prodId) * (0.95 + (rand.nextDouble() * 0.1))); // slightly fluctuating cost
+                purchaseService.addPurchase(p);
+            }
             
-            // Generate some past dates
-            Date date1 = Date.valueOf(LocalDate.now().minusDays(10));
-            Date date2 = Date.valueOf(LocalDate.now().minusDays(8));
-            Date date3 = Date.valueOf(LocalDate.now().minusDays(5));
-            Date date4 = Date.valueOf(LocalDate.now().minusDays(2));
-            Date dateNow = Date.valueOf(LocalDate.now());
+            System.out.println("Purchases seeded.");
 
-            // 1. Add Purchases (automatically creates/updates Stock)
-            // Product 1: Galaxy S24 Ultra, Supplier 1
-            Purchase p1 = new Purchase();
-            p1.setPurchaseDate(date1);
-            p1.setProductId(1);
-            p1.setSupplierId(1);
-            p1.setQuantity(50);
-            p1.setCostPrice(115000.0);
-            purchaseService.addPurchase(p1);
+            // 4. Seed hundreds of sales
+            System.out.println("Seeding sales...");
+            for (int i = 0; i < 200; i++) {
+                Sale s = new Sale();
+                LocalDate sDate = startYear.plusDays(rand.nextInt(365));
+                s.setSaleDate(Date.valueOf(sDate));
+                int prodId = rand.nextInt(16) + 1;
+                s.setProductId(prodId);
+                s.setCustomerId(rand.nextInt(8) + 1);
+                
+                // Small quantities (1 to 3)
+                int qty = rand.nextInt(3) + 1;
+                s.setQuantity(qty);
+                
+                double sellingPrice = getEstimatedPrice(prodId);
+                s.setSellingPrice(sellingPrice);
+                
+                boolean addWarranty = rand.nextBoolean();
+                int warrantyMonths = addWarranty ? 12 : 0;
+                
+                try {
+                    saleService.addSale(s, addWarranty, warrantyMonths);
+                } catch (Exception e) {
+                    // Might run out of stock occasionally, just skip
+                }
+            }
 
-            // Product 2: iPhone 15 Pro, Supplier 2
-            Purchase p2 = new Purchase();
-            p2.setPurchaseDate(date2);
-            p2.setProductId(2);
-            p2.setSupplierId(2);
-            p2.setQuantity(30);
-            p2.setCostPrice(120000.0);
-            purchaseService.addPurchase(p2);
-
-            // Product 4: WH-1000XM5, Supplier 3
-            Purchase p3 = new Purchase();
-            p3.setPurchaseDate(date3);
-            p3.setProductId(4);
-            p3.setSupplierId(3);
-            p3.setQuantity(100);
-            p3.setCostPrice(22000.0);
-            purchaseService.addPurchase(p3);
-
-            System.out.println("Purchases added and stock updated!");
-
-            // 2. Add Sales (automatically decrements Stock and creates Warranty if true)
-            // Sell 2 Galaxy S24 Ultra to Customer 1 with 12 months warranty
-            Sale s1 = new Sale();
-            s1.setSaleDate(date3);
-            s1.setProductId(1);
-            s1.setCustomerId(1);
-            s1.setQuantity(2);
-            s1.setSellingPrice(129999.0);
-            saleService.addSale(s1, true, 12);
-
-            // Sell 1 iPhone 15 Pro to Customer 2 with 24 months warranty
-            Sale s2 = new Sale();
-            s2.setSaleDate(date4);
-            s2.setProductId(2);
-            s2.setCustomerId(2);
-            s2.setQuantity(1);
-            s2.setSellingPrice(134900.0);
-            saleService.addSale(s2, true, 24);
-
-            // Sell 5 Headphones to Customer 3 without warranty
-            Sale s3 = new Sale();
-            s3.setSaleDate(dateNow);
-            s3.setProductId(4);
-            s3.setCustomerId(3);
-            s3.setQuantity(5);
-            s3.setSellingPrice(29990.0);
-            saleService.addSale(s3, false, 0);
-
-            // Sell 1 more Galaxy S24 Ultra to Customer 2
-            Sale s4 = new Sale();
-            s4.setSaleDate(dateNow);
-            s4.setProductId(1);
-            s4.setCustomerId(2);
-            s4.setQuantity(1);
-            s4.setSellingPrice(129999.0);
-            saleService.addSale(s4, true, 12);
-
-            System.out.println("Sales recorded, stock decrcemented, and warranties generated!");
-            System.out.println("Data seeding complete.");
+            System.out.println("Sales and warranties seeded!");
+            System.out.println("Data seeding complete. Realistic inventory generated.");
 
         } catch (Exception e) {
             System.err.println("Error seeding data: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private static double getEstimatedCost(int prodId) {
+        return getEstimatedPrice(prodId) * 0.75;
+    }
+
+    private static double getEstimatedPrice(int prodId) {
+        double[] prices = {
+            129999.00, 134900.00, 64999.00, 29990.00, 22999.00,
+            6999.00, 44999.00, 32990.00, 74900.00, 99990.00,
+            185000.00, 199900.00, 159999.00, 145000.00, 215000.00, 49990.00
+        };
+        if (prodId >= 1 && prodId <= prices.length) {
+            return prices[prodId - 1];
+        }
+        return 10000.00;
+    }
+
+    private static void executeSqlFile(String filePath) throws Exception {
+        String content = new String(Files.readAllBytes(Paths.get(filePath)));
+        String[] statements = content.split(";");
+
+        try (Connection conn = DBConnection.getConnection();
+             Statement stmt = conn.createStatement()) {
+            // Drop tables if they exist to start fresh
+            stmt.execute("SET FOREIGN_KEY_CHECKS = 0");
+            stmt.execute("DROP TABLE IF EXISTS warranty, stock, sale, purchase, customer, supplier, product, brand");
+            stmt.execute("SET FOREIGN_KEY_CHECKS = 1");
+
+            for (String sql : statements) {
+                if (sql.trim().length() > 0 && !sql.trim().toUpperCase().startsWith("CREATE DATABASE") && !sql.trim().toUpperCase().startsWith("USE ")) {
+                    stmt.execute(sql.trim());
+                }
+            }
         }
     }
 }

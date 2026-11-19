@@ -2,25 +2,46 @@ import { useState } from 'react';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { brands as initialBrands } from '../data/mockData';
+import { brands, saveToBackend, updateToBackend, deleteFromBackend } from '../data/mockData';
 
 const emptyForm = { brand_name: '', country: '' };
 
 export default function BrandsPage() {
-  const [data, setData] = useState(initialBrands);
+  const [data, setData] = useState(brands);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setModalOpen(true); };
   const openEdit = (row) => { setEditing(row); setForm({ brand_name: row.brand_name, country: row.country || '' }); setModalOpen(true); };
-  const handleSave = () => {
+  
+  const handleSave = async () => {
     if (!form.brand_name) return;
-    if (editing) setData(d => d.map(r => r.brand_id === editing.brand_id ? { ...r, ...form } : r));
-    else setData(d => [...d, { brand_id: Math.max(...d.map(x => x.brand_id), 0) + 1, ...form }]);
-    setModalOpen(false);
+    try {
+      if (editing) {
+        const updated = { ...editing, ...form };
+        await updateToBackend('brands', updated);
+      } else {
+        const newBrand = { brand_id: 0, ...form };
+        await saveToBackend('brands', newBrand);
+      }
+      setData([...brands]);
+      setModalOpen(false);
+    } catch (e) {
+      alert(e.message);
+    }
   };
-  const handleDelete = (row) => { if (confirm(`Delete brand "${row.brand_name}"?`)) setData(d => d.filter(r => r.brand_id !== row.brand_id)); };
+
+  const handleDelete = async (row) => {
+    if (confirm(`Delete brand "${row.brand_name}"?`)) {
+      try {
+        await deleteFromBackend('brands', row.brand_id);
+        setData([...brands]);
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+  };
 
   const columns = [
     { key: 'brand_id', label: 'ID', width: '60px' },

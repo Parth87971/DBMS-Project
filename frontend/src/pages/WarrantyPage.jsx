@@ -29,7 +29,7 @@ export default function WarrantyPage() {
   // Enhance data with calculated fields for sorting and rendering
   const enhancedData = data.map(w => {
     const info = getSaleInfo(w.sale_id);
-    const status = getWarrantyStatus(w.end_date);
+    const status = getWarrantyStatus(w.warranty_end);
     return { ...w, ...info, statusInfo: status };
   });
 
@@ -37,8 +37,8 @@ export default function WarrantyPage() {
     { key: 'warranty_id', label: 'ID', width: '60px' },
     { key: 'product', label: 'Product' },
     { key: 'customer', label: 'Customer' },
-    { key: 'start_date', label: 'Start Date', render: r => formatDate(r.start_date) },
-    { key: 'end_date', label: 'End Date', render: r => formatDate(r.end_date) },
+    { key: 'warranty_start', label: 'Start Date', render: r => formatDate(r.warranty_start) },
+    { key: 'warranty_end', label: 'End Date', render: r => formatDate(r.warranty_end) },
     {
       key: 'status', label: 'Status', render: r => (
         <span className={`badge ${r.statusInfo.class} gap-xs`}>
@@ -69,7 +69,7 @@ export default function WarrantyPage() {
         columns={columns}
         data={enhancedData}
         searchPlaceholder="Search product or customer..."
-        searchKeys={['product', 'customer', 'start_date', 'end_date']}
+        searchKeys={['product', 'customer', 'warranty_start', 'warranty_end']}
         actions={() => null} 
       />
     </div>

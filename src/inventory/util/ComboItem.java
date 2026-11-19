@@ -1,8 +1,5 @@
 package inventory.util;
 
-/**
- * Wrapper used in JComboBox to store an ID alongside a display label.
- */
 public class ComboItem {
 
     private final int id;
@@ -18,6 +15,7 @@ public class ComboItem {
 
     @Override
     public String toString() {
-        return label;          // displayed in the combo box
+        return label;
     }
 }
+

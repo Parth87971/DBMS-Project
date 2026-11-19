@@ -9,7 +9,6 @@ import java.util.List;
 
 public class PurchaseDAO {
 
-    /** Returns all purchases with product name and supplier name (joined). */
     public List<Object[]> getAllWithDetails() throws SQLException {
         List<Object[]> list = new ArrayList<>();
         String sql = "SELECT pu.purchase_id, pu.purchase_date, pr.product_name, "
@@ -93,5 +92,25 @@ public class PurchaseDAO {
             rs.next();
             return rs.getInt(1);
         }
+    }
+
+    public List<Purchase> getAll() throws SQLException {
+        List<Purchase> list = new ArrayList<>();
+        String sql = "SELECT * FROM purchase ORDER BY purchase_id";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Purchase(
+                        rs.getInt("purchase_id"),
+                        rs.getDate("purchase_date"),
+                        rs.getInt("quantity"),
+                        rs.getDouble("cost_price"),
+                        rs.getInt("product_id"),
+                        rs.getInt("supplier_id")
+                ));
+            }
+        }
+        return list;
     }
 }

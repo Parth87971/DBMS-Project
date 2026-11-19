@@ -2,9 +2,11 @@ import { useState } from 'react';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import { Plus, Pencil, Trash2, Info } from 'lucide-react';
-import { purchases as initialPurchases, products, suppliers, getProductName, getSupplierName, formatCurrency, formatDate } from '../data/mockData';
+import { purchases as initialPurchases, products, suppliers, stock, getProductName, getSupplierName, formatCurrency, formatDate } from '../data/mockData';
 
 const emptyForm = { purchase_date: new Date().toISOString().split('T')[0], product_id: '', supplier_id: '', quantity: '', cost_price: '' };
+
+import { saveToBackend, deleteFromBackend } from '../data/mockData';
 
 export default function PurchasesPage() {
   const [data, setData] = useState(initialPurchases);
@@ -25,17 +27,33 @@ export default function PurchasesPage() {
     setModalOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.purchase_date || !form.product_id || !form.supplier_id || !form.quantity || !form.cost_price) return;
-    if (editing) {
-      setData(d => d.map(r => r.purchase_id === editing.purchase_id ? { ...r, ...form, product_id: Number(form.product_id), supplier_id: Number(form.supplier_id), quantity: Number(form.quantity), cost_price: Number(form.cost_price) } : r));
-    } else {
-      setData(d => [...d, { purchase_id: Math.max(...d.map(x => x.purchase_id), 0) + 1, ...form, product_id: Number(form.product_id), supplier_id: Number(form.supplier_id), quantity: Number(form.quantity), cost_price: Number(form.cost_price) }]);
+    try {
+      if (editing) {
+        const updated = { ...editing, ...form, product_id: Number(form.product_id), supplier_id: Number(form.supplier_id), quantity: Number(form.quantity), cost_price: Number(form.cost_price) };
+        await saveToBackend('purchases', updated);
+      } else {
+        const newPurchase = { purchase_id: 0, ...form, product_id: Number(form.product_id), supplier_id: Number(form.supplier_id), quantity: Number(form.quantity), cost_price: Number(form.cost_price) };
+        await saveToBackend('purchases', newPurchase);
+      }
+      setData([...initialPurchases]);
+      setModalOpen(false);
+    } catch (e) {
+      alert(e.message);
     }
-    setModalOpen(false);
   };
 
-  const handleDelete = (row) => { if (confirm(`Delete this purchase record? Note: This will not undo stock changes.`)) setData(d => d.filter(r => r.purchase_id !== row.purchase_id)); };
+  const handleDelete = async (row) => {
+    if (confirm(`Delete this purchase record? Note: This will not undo stock changes.`)) {
+      try {
+        await deleteFromBackend('purchases', row.purchase_id);
+        setData([...initialPurchases]);
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+  };
 
   const columns = [
     { key: 'purchase_id', label: 'ID', width: '60px' },

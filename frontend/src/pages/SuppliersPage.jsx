@@ -2,25 +2,50 @@ import { useState } from 'react';
 import DataTable from '../components/DataTable';
 import Modal from '../components/Modal';
 import { Plus, Pencil, Trash2, Mail, Phone, MapPin } from 'lucide-react';
-import { suppliers as initialSuppliers } from '../data/mockData';
+import { suppliers, saveToBackend, updateToBackend, deleteFromBackend } from '../data/mockData';
 
-const emptyForm = { supplier_name: '', phone: '', city: '', email: '' };
+const emptyForm = { supplier_name: '', phone: '', email: '', city: '' };
 
 export default function SuppliersPage() {
-  const [data, setData] = useState(initialSuppliers);
+  const [data, setData] = useState(suppliers);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
 
   const openAdd = () => { setEditing(null); setForm(emptyForm); setModalOpen(true); };
-  const openEdit = (row) => { setEditing(row); setForm({ supplier_name: row.supplier_name, phone: row.phone || '', city: row.city || '', email: row.email || '' }); setModalOpen(true); };
-  const handleSave = () => {
-    if (!form.supplier_name) return;
-    if (editing) setData(d => d.map(r => r.supplier_id === editing.supplier_id ? { ...r, ...form } : r));
-    else setData(d => [...d, { supplier_id: Math.max(...d.map(x => x.supplier_id), 0) + 1, ...form }]);
-    setModalOpen(false);
+  const openEdit = (row) => {
+    setEditing(row);
+    setForm({ supplier_name: row.supplier_name, phone: row.phone || '', email: row.email || '', city: row.city || '' });
+    setModalOpen(true);
   };
-  const handleDelete = (row) => { if (confirm(`Delete supplier "${row.supplier_name}"?`)) setData(d => d.filter(r => r.supplier_id !== row.supplier_id)); };
+
+  const handleSave = async () => {
+    if (!form.supplier_name) return;
+    try {
+      if (editing) {
+        const updated = { ...editing, ...form };
+        await updateToBackend('suppliers', updated);
+      } else {
+        const newSupplier = { supplier_id: 0, ...form };
+        await saveToBackend('suppliers', newSupplier);
+      }
+      setData([...suppliers]);
+      setModalOpen(false);
+    } catch (e) {
+      alert(e.message);
+    }
+  };
+
+  const handleDelete = async (row) => {
+    if (confirm(`Delete supplier "${row.supplier_name}"?`)) {
+      try {
+        await deleteFromBackend('suppliers', row.supplier_id);
+        setData([...suppliers]);
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+  };
 
   const columns = [
     { key: 'supplier_id', label: 'ID', width: '60px' },

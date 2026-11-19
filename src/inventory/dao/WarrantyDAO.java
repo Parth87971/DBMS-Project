@@ -9,7 +9,6 @@ import java.util.List;
 
 public class WarrantyDAO {
 
-    /** Returns all warranties with sale details (joined). */
     public List<Object[]> getAllWithDetails() throws SQLException {
         List<Object[]> list = new ArrayList<>();
         String sql = "SELECT w.warranty_id, w.sale_id, sa.sale_date, "
@@ -56,7 +55,6 @@ public class WarrantyDAO {
         return null;
     }
 
-    /** Search warranties by product name or customer name. */
     public List<Object[]> searchWithDetails(String keyword) throws SQLException {
         List<Object[]> list = new ArrayList<>();
         String sql = "SELECT w.warranty_id, w.sale_id, sa.sale_date, "
@@ -84,6 +82,24 @@ public class WarrantyDAO {
                         rs.getDate("warranty_start"),
                         rs.getDate("warranty_end")
                 });
+            }
+        }
+        return list;
+    }
+
+    public List<Warranty> getAll() throws SQLException {
+        List<Warranty> list = new ArrayList<>();
+        String sql = "SELECT * FROM warranty ORDER BY warranty_id";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Warranty(
+                        rs.getInt("warranty_id"),
+                        rs.getInt("sale_id"),
+                        rs.getDate("warranty_start"),
+                        rs.getDate("warranty_end")
+                ));
             }
         }
         return list;

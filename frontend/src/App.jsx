@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import ProductsPage from './pages/ProductsPage';
@@ -9,8 +10,21 @@ import PurchasesPage from './pages/PurchasesPage';
 import SalesPage from './pages/SalesPage';
 import StockPage from './pages/StockPage';
 import WarrantyPage from './pages/WarrantyPage';
+import { loadDataFromBackend } from './data/mockData';
 
 export default function App() {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadDataFromBackend().then(() => {
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) {
+    return <div style={{display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center'}}>Loading connection to Database...</div>;
+  }
+
   return (
     <BrowserRouter>
       <Routes>

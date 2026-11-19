@@ -81,9 +81,18 @@ export default function Dashboard() {
   const catColors = ['#292524', '#0d9488', '#2563eb', '#d97706', '#dc2626', '#7c3aed'];
   const lowStockItems = stats.lowStockItems;
 
-  const totalCost = purchases.reduce((sum, p) => sum + p.quantity * p.cost_price, 0);
+  const totalPurchaseCost = purchases.reduce((sum, p) => sum + p.quantity * p.cost_price, 0);
   const totalRevenue = stats.totalRevenue;
-  const grossProfit = totalRevenue - totalCost;
+  
+  // Calculate true Cost of Goods Sold (COGS)
+  const totalCOGS = sales.reduce((sum, s) => {
+    // Find the latest unit cost from purchases for this product
+    const purchase = [...purchases].reverse().find(p => p.product_id === s.product_id);
+    const unitCost = purchase ? purchase.cost_price : (s.selling_price * 0.7); // Fallback estimate
+    return sum + (s.quantity * unitCost);
+  }, 0);
+
+  const grossProfit = totalRevenue - totalCOGS;
 
   return (
     <div className="page-container">
@@ -148,15 +157,7 @@ export default function Dashboard() {
                     <div className="vbar" style={{ height: `${(m.purchases / maxMonthlyQty) * 100}%`, background: '#2563eb' }} title={`Purchased: ${m.purchases}`} />
                     <div className="vbar" style={{ height: `${(m.sales / maxMonthlyQty) * 100}%`, background: '#0d9488' }} title={`Sold: ${m.sales}`} />
                   </div>
-                  <div className="vbar-label">{m.label}</div>
-                </div>
-              ))}
-            </div>
-            <div className="trend-summary">
-              {monthlyTrend.map((m, i) => (
-                <div className="trend-row" key={i}>
-                  <span className="trend-month">{m.label}</span>
-                  <span className="font-mono text-secondary" style={{ fontSize: 12 }}>In: {m.purchases} · Out: {m.sales}</span>
+                  <div className="vbar-label" title={m.label}>{m.label.split(' ')[0]}</div>
                 </div>
               ))}
             </div>
@@ -282,8 +283,8 @@ export default function Dashboard() {
         <div className="card-body">
           <div className="financial-grid">
             <div className="financial-item">
-              <div className="financial-label">Total Purchase Cost</div>
-              <div className="financial-value font-mono">{formatCurrency(totalCost)}</div>
+              <div className="financial-label">Cost of Goods Sold</div>
+              <div className="financial-value font-mono">{formatCurrency(totalCOGS)}</div>
             </div>
             <div className="financial-item">
               <div className="financial-label">Total Sales Revenue</div>
@@ -299,10 +300,10 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="margin-bar-area">
-            <div className="margin-labels"><span>Cost</span><span>Revenue</span></div>
+            <div className="margin-labels"><span>COGS</span><span>Revenue</span></div>
             <div className="margin-bar-track">
-              <div className="margin-bar-cost" style={{ width: `${(totalCost / (totalCost + totalRevenue)) * 100}%` }} />
-              <div className="margin-bar-revenue" style={{ width: `${(totalRevenue / (totalCost + totalRevenue)) * 100}%` }} />
+              <div className="margin-bar-cost" style={{ width: `${(totalCOGS / (totalCOGS + totalRevenue)) * 100}%` }} />
+              <div className="margin-bar-revenue" style={{ width: `${(totalRevenue / (totalCOGS + totalRevenue)) * 100}%` }} />
             </div>
           </div>
         </div>

@@ -9,7 +9,6 @@ import java.util.List;
 
 public class SaleDAO {
 
-    /** Returns all sales with product name and customer name (joined). */
     public List<Object[]> getAllWithDetails() throws SQLException {
         List<Object[]> list = new ArrayList<>();
         String sql = "SELECT sa.sale_id, sa.sale_date, pr.product_name, "
@@ -102,5 +101,25 @@ public class SaleDAO {
             rs.next();
             return rs.getDouble(1);
         }
+    }
+
+    public List<Sale> getAll() throws SQLException {
+        List<Sale> list = new ArrayList<>();
+        String sql = "SELECT * FROM sale ORDER BY sale_id";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(new Sale(
+                        rs.getInt("sale_id"),
+                        rs.getDate("sale_date"),
+                        rs.getInt("quantity"),
+                        rs.getDouble("selling_price"),
+                        rs.getInt("product_id"),
+                        rs.getInt("customer_id")
+                ));
+            }
+        }
+        return list;
     }
 }

@@ -5,23 +5,14 @@ import inventory.model.Purchase;
 
 import java.sql.*;
 
-/**
- * Handles purchase transactions with automatic stock update.
- * Uses database transactions — commits only when all steps succeed.
- */
 public class PurchaseService {
 
-    /**
-     * Adds a new purchase and updates stock accordingly.
-     * If stock row does not exist for the product, creates one with default reorder_level = 10.
-     */
     public void addPurchase(Purchase purchase) throws SQLException {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
-            // Step 1: Insert into purchase table
             String insertSql = "INSERT INTO purchase (purchase_date, quantity, cost_price, product_id, supplier_id) "
                              + "VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
@@ -33,7 +24,6 @@ public class PurchaseService {
                 ps.executeUpdate();
             }
 
-            // Step 2: Update or create stock
             String checkSql = "SELECT stock_id FROM stock WHERE product_id=?";
             boolean stockExists;
             try (PreparedStatement ps = conn.prepareStatement(checkSql)) {
@@ -54,7 +44,7 @@ public class PurchaseService {
                 try (PreparedStatement ps = conn.prepareStatement(newStockSql)) {
                     ps.setInt(1, purchase.getProductId());
                     ps.setInt(2, purchase.getQuantity());
-                    ps.setInt(3, 10); // default reorder level
+                    ps.setInt(3, 10);
                     ps.executeUpdate();
                 }
             }
@@ -72,16 +62,12 @@ public class PurchaseService {
         }
     }
 
-    /**
-     * Deletes a purchase and reverses the stock increase.
-     */
     public void deletePurchase(int purchaseId) throws SQLException {
         Connection conn = null;
         try {
             conn = DBConnection.getConnection();
             conn.setAutoCommit(false);
 
-            // Get purchase details first
             int productId;
             int quantity;
             String fetchSql = "SELECT product_id, quantity FROM purchase WHERE purchase_id=?";
@@ -95,14 +81,12 @@ public class PurchaseService {
                 quantity  = rs.getInt("quantity");
             }
 
-            // Delete the purchase
             String delSql = "DELETE FROM purchase WHERE purchase_id=?";
             try (PreparedStatement ps = conn.prepareStatement(delSql)) {
                 ps.setInt(1, purchaseId);
                 ps.executeUpdate();
             }
 
-            // Decrease stock
             String updateSql = "UPDATE stock SET available_quantity = available_quantity - ? WHERE product_id=?";
             try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
                 ps.setInt(1, quantity);
@@ -123,3 +107,4 @@ public class PurchaseService {
         }
     }
 }
+

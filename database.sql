@@ -1,20 +1,12 @@
-
-
 CREATE DATABASE IF NOT EXISTS electronics_inventory;
 USE electronics_inventory;
 
--- ============================================================
--- TABLE 1: BRAND
--- ============================================================
 CREATE TABLE brand (
     brand_id    INT PRIMARY KEY AUTO_INCREMENT,
     brand_name  VARCHAR(100) NOT NULL,
     country     VARCHAR(60)
 ) ENGINE=InnoDB;
 
--- ============================================================
--- TABLE 2: PRODUCT
--- ============================================================
 CREATE TABLE product (
     product_id    INT PRIMARY KEY AUTO_INCREMENT,
     product_name  VARCHAR(150) NOT NULL,
@@ -28,9 +20,6 @@ CREATE TABLE product (
     INDEX idx_product_brand (brand_id)
 ) ENGINE=InnoDB;
 
--- ============================================================
--- TABLE 3: SUPPLIER
--- ============================================================
 CREATE TABLE supplier (
     supplier_id    INT PRIMARY KEY AUTO_INCREMENT,
     supplier_name  VARCHAR(150) NOT NULL,
@@ -39,9 +28,6 @@ CREATE TABLE supplier (
     email          VARCHAR(150)
 ) ENGINE=InnoDB;
 
--- ============================================================
--- TABLE 4: CUSTOMER
--- ============================================================
 CREATE TABLE customer (
     customer_id    INT PRIMARY KEY AUTO_INCREMENT,
     customer_name  VARCHAR(150) NOT NULL,
@@ -49,9 +35,6 @@ CREATE TABLE customer (
     email          VARCHAR(150)
 ) ENGINE=InnoDB;
 
--- ============================================================
--- TABLE 5: PURCHASE
--- ============================================================
 CREATE TABLE purchase (
     purchase_id    INT PRIMARY KEY AUTO_INCREMENT,
     purchase_date  DATE NOT NULL,
@@ -69,9 +52,6 @@ CREATE TABLE purchase (
     INDEX idx_purchase_supplier (supplier_id)
 ) ENGINE=InnoDB;
 
--- ============================================================
--- TABLE 6: SALE
--- ============================================================
 CREATE TABLE sale (
     sale_id        INT PRIMARY KEY AUTO_INCREMENT,
     sale_date      DATE NOT NULL,
@@ -89,9 +69,6 @@ CREATE TABLE sale (
     INDEX idx_sale_customer (customer_id)
 ) ENGINE=InnoDB;
 
--- ============================================================
--- TABLE 7: STOCK  (one-to-one with product)
--- ============================================================
 CREATE TABLE stock (
     stock_id            INT PRIMARY KEY AUTO_INCREMENT,
     product_id          INT NOT NULL UNIQUE,
@@ -104,9 +81,6 @@ CREATE TABLE stock (
     INDEX idx_stock_product (product_id)
 ) ENGINE=InnoDB;
 
--- ============================================================
--- TABLE 8: WARRANTY  (one-to-one with sale)
--- ============================================================
 CREATE TABLE warranty (
     warranty_id     INT PRIMARY KEY AUTO_INCREMENT,
     sale_id         INT NOT NULL UNIQUE,
@@ -117,30 +91,52 @@ CREATE TABLE warranty (
     INDEX idx_warranty_sale (sale_id)
 ) ENGINE=InnoDB;
 
--- ============================================================
--- SAMPLE DATA (Optional — for testing)
--- ============================================================
-
 INSERT INTO brand (brand_name, country) VALUES
 ('Samsung', 'South Korea'),
 ('Apple', 'USA'),
 ('OnePlus', 'China'),
 ('Sony', 'Japan'),
-('Xiaomi', 'China');
+('Xiaomi', 'China'),
+('LG', 'South Korea'),
+('Bose', 'USA'),
+('Dell', 'USA'),
+('HP', 'USA'),
+('Lenovo', 'China'),
+('Asus', 'Taiwan'),
+('Microsoft', 'USA');
 
 INSERT INTO supplier (supplier_name, phone, city, email) VALUES
 ('TechWorld Distributors', '9876543210', 'Mumbai', 'tech@world.com'),
 ('Global Electronics', '9123456780', 'Delhi', 'global@elec.com'),
-('Prime Supply Co.', '9988776655', 'Bangalore', 'prime@supply.com');
+('Prime Supply Co.', '9988776655', 'Bangalore', 'prime@supply.com'),
+('MegaTech Solutions', '9009876543', 'Chennai', 'orders@megatech.com'),
+('Digital Hub India', '9871234567', 'Hyderabad', 'info@digitalhub.in');
 
 INSERT INTO customer (customer_name, phone, email) VALUES
 ('Rahul Sharma', '9876501234', 'rahul@email.com'),
 ('Priya Patel', '9123409876', 'priya@email.com'),
-('Amit Kumar', '9988770011', 'amit@email.com');
+('Amit Kumar', '9988770011', 'amit@email.com'),
+('Sneha Reddy', '9001122334', 'sneha.r@email.com'),
+('Vikram Singh', '9112233445', 'vikram.s@email.com'),
+('Ananya Desai', '9223344556', 'ananya.d@email.com'),
+('Karan Mehta', '9888123456', 'karan.m@email.com'),
+('Riya Kapoor', '9888987654', 'riya.k@email.com');
 
 INSERT INTO product (product_name, model_number, category, price, brand_id) VALUES
 ('Galaxy S24 Ultra', 'SM-S928B', 'Smartphone', 129999.00, 1),
 ('iPhone 15 Pro', 'A2848', 'Smartphone', 134900.00, 2),
 ('OnePlus 12', 'CPH2583', 'Smartphone', 64999.00, 3),
 ('WH-1000XM5', 'WH1000XM5', 'Headphones', 29990.00, 4),
-('Redmi Note 13 Pro', '23090RA98I', 'Smartphone', 22999.00, 5);
+('Redmi Note 13 Pro', '23090RA98I', 'Smartphone', 22999.00, 5),
+('Galaxy Buds FE', 'SM-R400N', 'Earbuds', 6999.00, 1),
+('LG UltraGear 27GP850', '27GP850-B', 'Monitor', 44999.00, 6),
+('Bose QC45', 'QC45', 'Headphones', 32990.00, 7),
+('iPad Air M2', 'MUWG3HN/A', 'Tablet', 74900.00, 2),
+('Sony Bravia 55X90L', 'XR-55X90L', 'Television', 99990.00, 4),
+('Dell XPS 15', '9530', 'Laptop', 185000.00, 8),
+('MacBook Pro M3', 'MRX33HN/A', 'Laptop', 199900.00, 2),
+('HP Spectre x360', '14-ef0000', 'Laptop', 159999.00, 9),
+('Lenovo ThinkPad X1', '21CB0000US', 'Laptop', 145000.00, 10),
+('Asus ROG Zephyrus', 'GA402XZ', 'Laptop', 215000.00, 11),
+('Xbox Series X', 'RRT-00001', 'Console', 49990.00, 12);
+
