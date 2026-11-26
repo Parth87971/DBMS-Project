@@ -1,8 +1,12 @@
 out/
+target/
+uploads/*
+!uploads/.gitkeep
 *.class
 *.log
 .vscode/
 .idea/
 __pycache__/
 *.py[cod]
+
 

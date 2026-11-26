@@ -1,17 +1,41 @@
+import { useState } from 'react';
 import StatCard from '../components/StatCard';
 import {
   Package, Warehouse, Receipt, AlertTriangle,
-  TrendingUp, BarChart3, PieChart, Users,
+  TrendingUp, BarChart3, PieChart, Users, UploadCloud, CheckCircle, FileText
 } from 'lucide-react';
 import {
   getDashboardStats, products, stock, sales, purchases, customers,
   getProductName, getCustomerName, getBrandName,
-  formatCurrency,
+  formatCurrency, uploadFileToBackend
 } from '../data/mockData';
 import './Dashboard.css';
 
 export default function Dashboard() {
   const stats = getDashboardStats();
+
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState(null);
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (e) => {
+    e.preventDefault();
+    if (!selectedFile) return;
+    setUploading(true);
+    try {
+      const res = await uploadFileToBackend(selectedFile);
+      setUploadStatus({
+        success: true,
+        message: `File "${res.originalName || res.fileName}" uploaded successfully!`,
+        url: res.fileUrl
+      });
+      setSelectedFile(null);
+    } catch (err) {
+      setUploadStatus({ success: false, message: err.message });
+    } finally {
+      setUploading(false);
+    }
+  };
 
   // ── Analytics Data ──────────────────────────────────────────
   const revenueByProduct = {};
@@ -306,6 +330,73 @@ export default function Dashboard() {
               <div className="margin-bar-revenue" style={{ width: `${(totalRevenue / (totalCOGS + totalRevenue)) * 100}%` }} />
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* File & Document Upload (CircuStock AWS Feature) */}
+      <div className="card" style={{ marginTop: '20px' }}>
+        <div className="card-header">
+          <h3><UploadCloud size={16} /> File & Document Upload (Product Specs, Invoices, Receipts)</h3>
+        </div>
+        <div className="card-body">
+          <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '12px' }}>
+            Upload receipts, invoices, product spec sheets, or images directly to the Spring Boot backend.
+          </p>
+          <form onSubmit={handleUpload} style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <input
+              type="file"
+              onChange={(e) => { setSelectedFile(e.target.files[0]); setUploadStatus(null); }}
+              style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.875rem' }}
+            />
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={!selectedFile || uploading}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                background: uploading ? '#9ca3af' : '#2563eb',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '6px',
+                fontWeight: 500,
+                cursor: selectedFile && !uploading ? 'pointer' : 'not-allowed'
+              }}
+            >
+              <UploadCloud size={16} /> {uploading ? 'Uploading...' : 'Upload to Backend'}
+            </button>
+          </form>
+
+          {uploadStatus && (
+            <div
+              style={{
+                marginTop: '14px',
+                padding: '12px 16px',
+                borderRadius: '6px',
+                backgroundColor: uploadStatus.success ? '#ecfdf5' : '#fef2f2',
+                color: uploadStatus.success ? '#065f46' : '#991b1b',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                fontSize: '0.875rem'
+              }}
+            >
+              {uploadStatus.success ? <CheckCircle size={18} /> : <AlertTriangle size={18} />}
+              <span>{uploadStatus.message}</span>
+              {uploadStatus.url && (
+                <a
+                  href={`http://localhost:8081${uploadStatus.url}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{ marginLeft: 'auto', color: '#2563eb', fontWeight: 600, textDecoration: 'underline' }}
+                >
+                  View File
+                </a>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

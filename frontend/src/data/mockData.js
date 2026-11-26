@@ -77,6 +77,20 @@ export async function deleteFromBackend(entity, id) {
   await loadDataFromBackend();
 }
 
+export async function uploadFileToBackend(file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch('http://localhost:8081/api/upload', {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(errText || 'Failed to upload file.');
+  }
+  return await res.json();
+}
+
 export function getBrandName(brandId) {
   return brands.find(b => b.brand_id === brandId)?.brand_name || '—';
 }

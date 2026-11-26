@@ -33,12 +33,12 @@ A full-stack inventory management application built with a **React + Vite** fron
 
 | Layer       | Technology                          |
 |-------------|-------------------------------------|
-| Language    | Java 8+ (Backend)                   |
+| Language    | Java 17+ (Spring Boot 3)            |
 | Frontend    | React 19 + Vite + Lucide Icons      |
-| Backend API | Java HTTP REST Server (Gson)        |
+| Backend API | Spring Boot REST API (CircuStock)   |
 | Database    | MySQL 8.0+                          |
 | Connectivity| JDBC with `PreparedStatement` only  |
-| Driver      | MySQL Connector/J 8.x               |
+| Build Tool  | Apache Maven                        |
 
 ---
 
@@ -47,22 +47,22 @@ A full-stack inventory management application built with a **React + Vite** fron
 ```
 ElectronicsInventorySystem/
 ├── database.sql                  # Database creation + seed data
-├── lib/
-│   ├── gson-2.10.1.jar           # JSON serialization
-│   └── mysql-connector-j-8.3.0.jar
+├── pom.xml                       # Maven build configuration (circustock.jar)
 ├── src/
-│   └── inventory/
-│       ├── Main.java             # Backend entry point (starts REST server)
-│       ├── api/
-│       │   └── RestServer.java   # HTTP REST endpoints on port 8081
-│       ├── config/
-│       │   └── DBConnection.java # JDBC connection utility
-│       ├── model/                # POJO classes
-│       ├── dao/                  # Data Access Objects
-│       ├── service/              # Transaction/business logic
-│       └── util/                 # Utilities
+│   └── main/
+│       ├── java/inventory/
+│       │   ├── CircuStockApplication.java # Spring Boot entry point
+│       │   ├── controller/                # REST API & File Upload controllers
+│       │   ├── config/                    # CORS, Web, DB configurations
+│       │   ├── model/                     # POJO models
+│       │   ├── dao/                       # Data Access Objects
+│       │   ├── service/                   # Business & transaction logic
+│       │   └── util/                      # Helper utilities
+│       └── resources/
+│           └── application.properties     # Spring Boot application configuration
+├── uploads/                      # Uploaded documents and files
 ├── frontend/                     # React + Vite application (port 5173)
-├── build_and_run.bat             # Backend build & run script
+├── build_and_run.bat             # Production build & run script
 └── README.md
 ```
 
@@ -72,7 +72,7 @@ ElectronicsInventorySystem/
 
 ### Prerequisites
 
-1. **JDK 8** or later installed and `javac`/`java` in PATH.
+1. **JDK 17** or later installed and in PATH.
 2. **Node.js** (v18+) and npm.
 3. **MySQL 8.0+** installed and running.
 
@@ -82,15 +82,21 @@ ElectronicsInventorySystem/
 mysql -u root -p < database.sql
 ```
 
-### Step 2: Start the Java Backend
+### Step 2: Build the Production JAR
 
 ```bash
-# Build and run the backend REST API
-build_and_run.bat
+mvn clean package
+```
+Generates the production executable JAR: `target/circustock.jar`.
+
+### Step 3: Run the Spring Boot Backend
+
+```bash
+java -jar target/circustock.jar
 ```
 The REST API server will run on `http://localhost:8081`.
 
-### Step 3: Start the Frontend
+### Step 4: Start the Frontend
 
 ```bash
 cd frontend

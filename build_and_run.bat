@@ -1,16 +1,17 @@
 @echo off
-echo ===== Electronics Inventory Management System =====
-echo Compiling...
+echo ===== CircuStock Electronics Inventory Management System =====
 cd /d "%~dp0"
-if exist out rmdir /s /q out
-mkdir out
-javac -encoding UTF-8 -cp "lib\*" -d out src\inventory\Main.java src\inventory\config\DBConnection.java src\inventory\model\*.java src\inventory\dao\*.java src\inventory\service\*.java src\inventory\util\*.java src\inventory\api\*.java
-if %errorlevel% neq 0 (
-    echo COMPILATION FAILED!
-    pause
-    exit /b 1
+
+if not exist target\circustock.jar (
+    echo Building CircuStock production JAR...
+    call mvn clean package -DskipTests
+    if %errorlevel% neq 0 (
+        echo BUILD FAILED!
+        pause
+        exit /b 1
+    )
 )
-echo Compilation successful!
-echo Launching backend...
-java -cp "out;lib\*" inventory.Main
+
+echo Starting Spring Boot Backend (CircuStock)...
+java -jar target\circustock.jar
 pause
