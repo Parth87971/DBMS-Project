@@ -32,6 +32,7 @@ public class InventoryApiController {
     private final StockDAO stockDAO = new StockDAO();
     private final SupplierDAO supplierDAO = new SupplierDAO();
     private final WarrantyDAO warrantyDAO = new WarrantyDAO();
+    private final AttachmentDAO attachmentDAO = new AttachmentDAO();
 
     private final PurchaseService purchaseService = new PurchaseService();
     private final SaleService saleService = new SaleService();
@@ -48,6 +49,7 @@ public class InventoryApiController {
             data.put("stock", stockDAO.getAll());
             data.put("suppliers", supplierDAO.getAll());
             data.put("warranties", warrantyDAO.getAll());
+            data.put("attachments", attachmentDAO.getAll());
             return ResponseEntity.ok(gson.toJson(data));
         } catch (SQLException e) {
             e.printStackTrace();
@@ -115,6 +117,20 @@ public class InventoryApiController {
     public ResponseEntity<String> deleteProduct(@RequestParam("id") int id) {
         try {
             productDAO.delete(id);
+            return ResponseEntity.ok("{\"status\": \"success\"}");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("{\"error\": \"" + e.getMessage() + "\"}");
+        }
+    }
+
+    // --- STOCK ---
+    @PutMapping(value = "/stock", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> updateStockReorderLevel(@RequestBody String body) {
+        try {
+            Map<?, ?> map = gson.fromJson(body, Map.class);
+            int stockId = ((Double) map.get("stock_id")).intValue();
+            int reorderLevel = ((Double) map.get("reorder_level")).intValue();
+            stockDAO.updateReorderLevel(stockId, reorderLevel);
             return ResponseEntity.ok("{\"status\": \"success\"}");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("{\"error\": \"" + e.getMessage() + "\"}");

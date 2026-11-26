@@ -1,41 +1,20 @@
-import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import StatCard from '../components/StatCard';
 import {
   Package, Warehouse, Receipt, AlertTriangle,
-  TrendingUp, BarChart3, PieChart, Users, UploadCloud, CheckCircle, FileText
+  TrendingUp, BarChart3, PieChart, Users, Plus, FolderOpen,
 } from 'lucide-react';
 import {
   getDashboardStats, products, stock, sales, purchases, customers,
   getProductName, getCustomerName, getBrandName,
-  formatCurrency, uploadFileToBackend
+  formatCurrency, useInventorySync,
 } from '../data/mockData';
 import './Dashboard.css';
 
 export default function Dashboard() {
+  useInventorySync();
+  const navigate = useNavigate();
   const stats = getDashboardStats();
-
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [uploadStatus, setUploadStatus] = useState(null);
-  const [uploading, setUploading] = useState(false);
-
-  const handleUpload = async (e) => {
-    e.preventDefault();
-    if (!selectedFile) return;
-    setUploading(true);
-    try {
-      const res = await uploadFileToBackend(selectedFile);
-      setUploadStatus({
-        success: true,
-        message: `File "${res.originalName || res.fileName}" uploaded successfully!`,
-        url: res.fileUrl
-      });
-      setSelectedFile(null);
-    } catch (err) {
-      setUploadStatus({ success: false, message: err.message });
-    } finally {
-      setUploading(false);
-    }
-  };
 
   // ── Analytics Data ──────────────────────────────────────────
   const revenueByProduct = {};
@@ -45,7 +24,7 @@ export default function Dashboard() {
   });
   const revenueByProductSorted = Object.entries(revenueByProduct)
     .sort((a, b) => b[1] - a[1]).slice(0, 6);
-  const maxRevenue = Math.max(...revenueByProductSorted.map(([, v]) => v));
+  const maxRevenue = Math.max(1, ...revenueByProductSorted.map(([, v]) => v));
 
   const salesByCategory = {};
   sales.forEach(s => {
@@ -62,16 +41,16 @@ export default function Dashboard() {
     reorder: s.reorder_level,
     isLow: s.available_quantity <= s.reorder_level,
   })).sort((a, b) => a.available - b.available);
-  const maxStock = Math.max(...stockLevels.map(s => s.available));
+  const maxStock = Math.max(1, ...stockLevels.map(s => s.available));
 
   const months = {};
   purchases.forEach(p => {
-    const m = p.purchase_date.slice(0, 7);
+    const m = String(p.purchase_date).slice(0, 7);
     if (!months[m]) months[m] = { purchases: 0, sales: 0 };
     months[m].purchases += p.quantity;
   });
   sales.forEach(s => {
-    const m = s.sale_date.slice(0, 7);
+    const m = String(s.sale_date).slice(0, 7);
     if (!months[m]) months[m] = { purchases: 0, sales: 0 };
     months[m].sales += s.quantity;
   });
@@ -81,22 +60,22 @@ export default function Dashboard() {
       label: new Date(month + '-01').toLocaleDateString('en-IN', { month: 'short', year: '2-digit' }),
       ...data,
     }));
-  const maxMonthlyQty = Math.max(...monthlyTrend.map(m => Math.max(m.purchases, m.sales)));
+  const maxMonthlyQty = Math.max(1, ...monthlyTrend.map(m => Math.max(m.purchases, m.sales)));
 
   const customerSpend = {};
   sales.forEach(s => {
     const name = getCustomerName(s.customer_id);
     customerSpend[name] = (customerSpend[name] || 0) + s.quantity * s.selling_price;
   });
-  const topCustomers = Object.entries(customerSpend).sort((a, b) => b[1] - a[1]);
-  const maxCustomerSpend = Math.max(...topCustomers.map(([, v]) => v));
+  const topCustomers = Object.entries(customerSpend).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  const maxCustomerSpend = Math.max(1, ...topCustomers.map(([, v]) => v));
 
   const inventoryByBrand = {};
   stock.forEach(s => {
     const prod = products.find(p => p.product_id === s.product_id);
     if (prod) {
-      const brand = getBrandName(prod.brand_id);
-      inventoryByBrand[brand] = (inventoryByBrand[brand] || 0) + s.available_quantity * prod.price;
+      const brandName = getBrandName(prod.brand_id);
+      inventoryByBrand[brandName] = (inventoryByBrand[brandName] || 0) + s.available_quantity * prod.price;
     }
   });
   const inventoryBrandSorted = Object.entries(inventoryByBrand).sort((a, b) => b[1] - a[1]);
@@ -105,42 +84,65 @@ export default function Dashboard() {
   const catColors = ['#292524', '#0d9488', '#2563eb', '#d97706', '#dc2626', '#7c3aed'];
   const lowStockItems = stats.lowStockItems;
 
-  const totalPurchaseCost = purchases.reduce((sum, p) => sum + p.quantity * p.cost_price, 0);
   const totalRevenue = stats.totalRevenue;
-  
-  // Calculate true Cost of Goods Sold (COGS)
   const totalCOGS = sales.reduce((sum, s) => {
-    // Find the latest unit cost from purchases for this product
     const purchase = [...purchases].reverse().find(p => p.product_id === s.product_id);
-    const unitCost = purchase ? purchase.cost_price : (s.selling_price * 0.7); // Fallback estimate
+    const unitCost = purchase ? purchase.cost_price : (s.selling_price * 0.7);
     return sum + (s.quantity * unitCost);
   }, 0);
-
   const grossProfit = totalRevenue - totalCOGS;
+  const cogsRevenueSum = totalCOGS + totalRevenue || 1;
 
   return (
     <div className="page-container">
       <div className="page-header">
         <div className="page-header-left">
           <div className="page-breadcrumb">Overview</div>
-          <h1>Dashboard</h1>
+          <h1>Operations Dashboard</h1>
+          <p>Real-time inventory valuation, sales velocity, and stock health</p>
+        </div>
+        <div className="page-header-actions">
+          <button className="btn btn-secondary" onClick={() => navigate('/documents')}>
+            <FolderOpen size={14} /> Documents ({stats.totalAttachments})
+          </button>
+          <button className="btn btn-secondary" onClick={() => navigate('/purchases')}>
+            <Plus size={14} /> Purchase
+          </button>
+          <button className="btn btn-primary" onClick={() => navigate('/sales')}>
+            <Plus size={14} /> Record Sale
+          </button>
         </div>
       </div>
 
       <div className="stats-grid">
-        <StatCard icon={<Package size={18} />} label="Total Products"
+        <StatCard
+          icon={<Package size={18} />}
+          label="Total Products"
           value={stats.totalProducts}
-          footer={`${Object.keys(salesByCategory).length} categories`} colorClass="blue" />
-        <StatCard icon={<Warehouse size={18} />} label="Inventory Value"
+          footer={`${Object.keys(salesByCategory).length} active categories`}
+          colorClass="blue"
+        />
+        <StatCard
+          icon={<Warehouse size={18} />}
+          label="Inventory Value"
           value={formatCurrency(totalInventoryValue)}
-          footer={`${stats.totalStockUnits.toLocaleString()} units in stock`} colorClass="green" />
-        <StatCard icon={<TrendingUp size={18} />} label="Total Revenue"
+          footer={`${stats.totalStockUnits.toLocaleString()} units in stock`}
+          colorClass="green"
+        />
+        <StatCard
+          icon={<TrendingUp size={18} />}
+          label="Total Revenue"
           value={formatCurrency(totalRevenue)}
-          footer={`From ${stats.totalSales} transactions`} colorClass="teal" />
-        <StatCard icon={<AlertTriangle size={18} />} label="Low Stock Alerts"
+          footer={`From ${stats.totalSales} transactions`}
+          colorClass="teal"
+        />
+        <StatCard
+          icon={<AlertTriangle size={18} />}
+          label="Low Stock Alerts"
           value={lowStockItems.length}
-          footer={lowStockItems.length > 0 ? 'Action required' : 'All levels healthy'}
-          colorClass={lowStockItems.length > 0 ? 'red' : 'green'} />
+          footer={lowStockItems.length > 0 ? 'Reorder action needed' : 'All stock levels healthy'}
+          colorClass={lowStockItems.length > 0 ? 'red' : 'green'}
+        />
       </div>
 
       {/* Row 1 */}
@@ -199,7 +201,7 @@ export default function Dashboard() {
           <div className="card-body">
             <div className="donut-breakdown">
               {salesByCategorySorted.map(([cat, qty], i) => {
-                const pct = ((qty / totalUnitsSold) * 100).toFixed(1);
+                const pct = totalUnitsSold > 0 ? ((qty / totalUnitsSold) * 100).toFixed(1) : '0.0';
                 return (
                   <div className="donut-row" key={cat}>
                     <div className="donut-row-left">
@@ -227,7 +229,7 @@ export default function Dashboard() {
           </div>
           <div className="card-body">
             <div className="stock-chart">
-              {stockLevels.map(s => (
+              {stockLevels.slice(0, 10).map(s => (
                 <div className={`stock-row ${s.isLow ? 'low' : ''}`} key={s.product}>
                   <div className="stock-label" title={s.product}>{s.product}</div>
                   <div className="stock-bar-track">
@@ -277,7 +279,7 @@ export default function Dashboard() {
           <div className="card-body">
             <div className="donut-breakdown">
               {inventoryBrandSorted.map(([brand, value], i) => {
-                const pct = ((value / totalInventoryValue) * 100).toFixed(1);
+                const pct = totalInventoryValue > 0 ? ((value / totalInventoryValue) * 100).toFixed(1) : '0.0';
                 return (
                   <div className="donut-row" key={brand}>
                     <div className="donut-row-left">
@@ -326,77 +328,10 @@ export default function Dashboard() {
           <div className="margin-bar-area">
             <div className="margin-labels"><span>COGS</span><span>Revenue</span></div>
             <div className="margin-bar-track">
-              <div className="margin-bar-cost" style={{ width: `${(totalCOGS / (totalCOGS + totalRevenue)) * 100}%` }} />
-              <div className="margin-bar-revenue" style={{ width: `${(totalRevenue / (totalCOGS + totalRevenue)) * 100}%` }} />
+              <div className="margin-bar-cost" style={{ width: `${(totalCOGS / cogsRevenueSum) * 100}%` }} />
+              <div className="margin-bar-revenue" style={{ width: `${(totalRevenue / cogsRevenueSum) * 100}%` }} />
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* File & Document Upload (CircuStock AWS Feature) */}
-      <div className="card" style={{ marginTop: '20px' }}>
-        <div className="card-header">
-          <h3><UploadCloud size={16} /> File & Document Upload (Product Specs, Invoices, Receipts)</h3>
-        </div>
-        <div className="card-body">
-          <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '12px' }}>
-            Upload receipts, invoices, product spec sheets, or images directly to the Spring Boot backend.
-          </p>
-          <form onSubmit={handleUpload} style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <input
-              type="file"
-              onChange={(e) => { setSelectedFile(e.target.files[0]); setUploadStatus(null); }}
-              style={{ padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '6px', fontSize: '0.875rem' }}
-            />
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={!selectedFile || uploading}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px 18px',
-                background: uploading ? '#9ca3af' : '#2563eb',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '6px',
-                fontWeight: 500,
-                cursor: selectedFile && !uploading ? 'pointer' : 'not-allowed'
-              }}
-            >
-              <UploadCloud size={16} /> {uploading ? 'Uploading...' : 'Upload to Backend'}
-            </button>
-          </form>
-
-          {uploadStatus && (
-            <div
-              style={{
-                marginTop: '14px',
-                padding: '12px 16px',
-                borderRadius: '6px',
-                backgroundColor: uploadStatus.success ? '#ecfdf5' : '#fef2f2',
-                color: uploadStatus.success ? '#065f46' : '#991b1b',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                fontSize: '0.875rem'
-              }}
-            >
-              {uploadStatus.success ? <CheckCircle size={18} /> : <AlertTriangle size={18} />}
-              <span>{uploadStatus.message}</span>
-              {uploadStatus.url && (
-                <a
-                  href={`http://localhost:8081${uploadStatus.url}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ marginLeft: 'auto', color: '#2563eb', fontWeight: 600, textDecoration: 'underline' }}
-                >
-                  View File
-                </a>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </div>
